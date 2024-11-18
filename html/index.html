@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Weather App</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#003973">
+    <!-- Add icons -->
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Weather App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base and Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #003973, #e5e5be);
+            color: #f1f1f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+            overflow: auto;
+            transition: all 0.3s ease-in-out;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(to bottom, #1b1b2f, #162447);
+            color: #e0e0e0;
+        }
+
+        main {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            transition: background 0.3s ease;
+            z-index: 10;
+            position: relative;
+            overflow: visible;
+        }
+
+        main.dark-mode {
+            background: rgba(50, 50, 50, 0.8);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            color: #ffd700;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #ffd700;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            background: #e6c200;
+        }
+
+        section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        section img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .forecast {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .forecast-day {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .forecast-day:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        footer button {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        footer button:hover {
+            background: #e0c000;
+        }
+
+        .favorites {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .favorite {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: inline-block;
+            transition: background 0.3s ease;
+            cursor: pointer;
+        }
+
+        .favorite:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Particle Background */
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleAnim 5s infinite ease-in-out;
+        }
+
+        @keyframes particleAnim {
+            0% { transform: translateY(0) scale(0.5); opacity: 0.8; }
+            50% { transform: translateY(-100px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(0) scale(0.5); opacity: 0.8; }
+        }
+
+        /* Quote Section */
+        .quote {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            animation: fadeInQuote 5s infinite;
+        }
+
+        @keyframes fadeInQuote {
+            0% { opacity: 0; }
+            25% { opacity: 0.5; }
+            50% { opacity: 1; }
+            75% { opacity: 0.5; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker
+            .register('/service-worker.js')
+            .then((registration) => {
+              console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('Service Worker registration failed:', error);
+            });
+        }
+      </script>
+      
+    <main>
+        <header>
+            <h1>Modern Weather App</h1>
+            <button onclick="toggleDarkMode()">Dark Mode</button>
+        </header>
+        <form onsubmit="event.preventDefault(); fetchWeatherByCity();">
+            <input type="text" id="city-input" placeholder="Enter city or country">
+            <button type="submit">Search</button>
+        </form>
+        <section id="current-weather">
+            <img src="https://img.icons8.com/ios/100/000000/partly-cloudy-day--v1.png" alt="Weather Icon">
+            <p>Enter a location to get started or enable location to see current weather.</p>
+        </section>
+        <section id="forecast">
+            <h2>5-Day Forecast</h2>
+            <div class="forecast" id="forecast-container"></div>
+        </section>
+        <section class="favorites">
+            <h2>Favorites</h2>
+            <div id="favorites-container"></div>
+        </section>
+        <footer>
+            <button onclick="toggleUnit()">Switch to °F</button>
+        </footer>
+    </main>
+
+    <!-- Particle Animation Elements -->
+    <div class="particle" style="top: 10%; left: 15%; width: 20px; height: 20px;"></div>
+    <div class="particle" style="top: 30%; left: 60%; width: 25px; height: 25px;"></div>
+    <div class="particle" style="top: 50%; left: 80%; width: 18px; height: 18px;"></div>
+
+    <!-- Quote Section -->
+    <div class="quote">"The sky is the limit, and the weather is always changing!"</div>
+
+    <script>
+        const apiKey = 'b8099cbe4bfd237b28f1ef709f7e88e9'; // Replace with your OpenWeatherMap API key
+        let isCelsius = true;
+
+        const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+        function toggleUnit() {
+            isCelsius = !isCelsius;
+            fetchWeatherByCity(); // Update displayed data
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function fetchWeatherByCity() {
+            const city = document.getElementById('city-input').value.trim();
+            if (!city) return;
+            fetchWeather(city);
+        }
+
+        function fetchWeather(city) {
+            const unit = isCelsius ? 'metric' : 'imperial';
+            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=${unit}&appid=${apiKey}`)
+                .then(response => response.json())
+                .then(data => displayCurrentWeather(data, city))
+                .catch(console.error);
+            fetchForecast(city, unit);
+        }
+
+        function fetchForecast(city, unit) {
+            fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=${unit}&appid=${apiKey}`)
+                .then(response => response.json())
+                .then(displayForecast)
+                .catch(console.error);
+        }
+
+        function displayCurrentWeather(data, city) {
+            const weatherHTML = `
+                <img src="http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="${data.weather[0].description}">
+                <h2>${data.name}</h2>
+                <p>${data.main.temp}°${isCelsius ? 'C' : 'F'}</p>
+                <p>${data.weather[0].description}</p>
+                <button onclick="addFavorite('${city}')">Add to Favorites</button>
+            `;
+            document.getElementById('current-weather').innerHTML = weatherHTML;
+        }
+
+        function displayForecast(data) {
+            const forecastHTML = data.list
+                .filter(item => item.dt_txt.includes('12:00:00'))
+                .map(item => `
+                    <div class="forecast-day">
+                        <h3>${new Date(item.dt_txt).toLocaleDateString('en-US', { weekday: 'short' })}</h3>
+                        <img src="http://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png" alt="${item.weather[0].description}">
+                        <p>${item.main.temp}°${isCelsius ? 'C' : 'F'}</p>
+                        <p>${item.weather[0].description}</p>
+                    </div>
+                `)
+                .join('');
+            document.getElementById('forecast-container').innerHTML = forecastHTML;
+        }
+
+        function addFavorite(city) {
+            if (!favorites.includes(city)) {
+                favorites.push(city);
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                updateFavorites();
+            }
+        }
+
+        function updateFavorites() {
+            document.getElementById('favorites-container').innerHTML = favorites
+                .map(city => `<span class="favorite" onclick="fetchWeather('${city}')">${city}</span>`)
+                .join('');
+        }
+
+        updateFavorites();
+    </script>
+</body>
+</html>
